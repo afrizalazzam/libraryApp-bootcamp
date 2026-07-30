@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { Quicksand } from "next/font/google";
 import "./globals.css";
+import { cn } from "@/lib/utils";
+import { Providers } from "@/components/providers";
 
 const quicksand = Quicksand({
   subsets: ["latin"],
-  variable: "--font-quicksand",
+  variable: "--font-sans",
 });
 
 export const metadata: Metadata = {
@@ -18,8 +20,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={quicksand.variable}>
-      <body>{children}</body>
+    <html lang="en" className={cn("font-sans", quicksand.variable)}>
+      <body>
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }
