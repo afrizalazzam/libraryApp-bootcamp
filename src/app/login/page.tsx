@@ -12,6 +12,7 @@ import { useLoginMutation } from "@/lib/api/auth";
 import { useAppDispatch } from "@/lib/redux/hooks";
 import { setCredentials } from "@/lib/redux/features/authSlice";
 import { saveSession } from "@/lib/auth-storage";
+import { useToast } from "@/components/ui/toast";
 
 type FormErrors = {
   email?: string;
@@ -39,6 +40,7 @@ function validate(email: string, password: string): FormErrors {
 export default function LoginPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const { showToast } = useToast();
   const loginMutation = useLoginMutation();
 
   const [email, setEmail] = useState("");
@@ -58,8 +60,10 @@ export default function LoginPage() {
         onSuccess: ({ token, user }) => {
           saveSession(token, user);
           dispatch(setCredentials({ token, user }));
+          showToast(`Welcome back, ${user.name}.`);
           router.push(user.role === "ADMIN" ? "/admin/users" : "/");
         },
+        onError: (err) => showToast(err.message, "error"),
       }
     );
   }

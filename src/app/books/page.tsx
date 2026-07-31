@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -10,7 +10,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { TopNav as UserTopNav } from "@/components/user/top-nav";
 import { TopNav as PublicTopNav } from "@/components/public/top-nav";
-import { useAppSelector } from "@/lib/redux/hooks";
+import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
+import { setBooksCategoryId, setBooksMinRating } from "@/lib/redux/features/uiSlice";
 import { useBooksQuery } from "@/lib/api/books";
 import { useCategoriesQuery } from "@/lib/api/categories";
 import { COVER_IMAGES } from "@/lib/book-covers";
@@ -28,15 +29,20 @@ export default function BookListPage() {
 }
 
 function BookListContent() {
+  const dispatch = useAppDispatch();
   const { user, isHydrated } = useAppSelector((state) => state.auth);
+  const { categoryId, minRating } = useAppSelector((state) => state.ui.books);
   const searchParams = useSearchParams();
   const categoryIdParam = searchParams.get("categoryId");
   const q = searchParams.get("q") ?? undefined;
-  const [categoryId, setCategoryId] = useState<number | null>(
-    categoryIdParam ? Number(categoryIdParam) : null
-  );
-  const [minRating, setMinRating] = useState<number | null>(null);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+  useEffect(() => {
+    if (categoryIdParam) dispatch(setBooksCategoryId(Number(categoryIdParam)));
+    // Only sync from the URL once, on mount — user-driven filter
+    // clicks shouldn't be overridden by a stale searchParams value.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const { data: categoriesData } = useCategoriesQuery();
   const categories = categoriesData?.categories ?? [];
@@ -88,7 +94,7 @@ function BookListContent() {
                     id={`category-${category.id}`}
                     checked={categoryId === category.id}
                     onCheckedChange={(checked) =>
-                      setCategoryId(checked ? category.id : null)
+                      dispatch(setBooksCategoryId(checked ? category.id : null))
                     }
                   />
                   <Label
@@ -110,7 +116,9 @@ function BookListContent() {
                   <Checkbox
                     id={`rating-${value}`}
                     checked={minRating === value}
-                    onCheckedChange={(checked) => setMinRating(checked ? value : null)}
+                    onCheckedChange={(checked) =>
+                      dispatch(setBooksMinRating(checked ? value : null))
+                    }
                   />
                   <Label
                     htmlFor={`rating-${value}`}

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useRegisterMutation } from "@/lib/api/auth";
+import { useToast } from "@/components/ui/toast";
 
 type FormErrors = {
   name?: string;
@@ -60,6 +61,7 @@ function validate(fields: {
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { showToast } = useToast();
   const registerMutation = useRegisterMutation();
 
   const [name, setName] = useState("");
@@ -86,8 +88,10 @@ export default function RegisterPage() {
       { name, email, phone, password },
       {
         onSuccess: () => {
+          showToast("Account created. Please log in.");
           router.push("/login");
         },
+        onError: (err) => showToast(err.message, "error"),
       }
     );
   }

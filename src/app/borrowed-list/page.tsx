@@ -9,7 +9,8 @@ import { TopNav } from "@/components/user/top-nav";
 import { Footer } from "@/components/footer";
 import { AccountTabs } from "@/components/user/account-tabs";
 import { ReviewDialog } from "@/components/user/review-dialog";
-import { useAppSelector } from "@/lib/redux/hooks";
+import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
+import { setLoansSearch, setLoansStatus } from "@/lib/redux/features/uiSlice";
 import { useMyLoansQuery, type Loan, type LoanStatusFilter } from "@/lib/api/loans";
 import { useAllMyReviewsQuery } from "@/lib/api/reviews";
 import { cn } from "@/lib/utils";
@@ -45,10 +46,10 @@ function statusBadgeClass(status: string) {
 
 export default function BorrowedListPage() {
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const { user, isHydrated } = useAppSelector((state) => state.auth);
+  const { status, search } = useAppSelector((state) => state.ui.loans);
 
-  const [status, setStatus] = useState<LoanStatusFilter>("all");
-  const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [reviewTarget, setReviewTarget] = useState<Loan | null>(null);
 
@@ -91,7 +92,7 @@ export default function BorrowedListPage() {
             type="search"
             placeholder="Search book"
             value={search}
-            onChange={(event) => setSearch(event.target.value)}
+            onChange={(event) => dispatch(setLoansSearch(event.target.value))}
             className="h-11 rounded-full pl-11 text-base"
           />
         </div>
@@ -101,7 +102,7 @@ export default function BorrowedListPage() {
             <button
               key={filter.value}
               type="button"
-              onClick={() => setStatus(filter.value)}
+              onClick={() => dispatch(setLoansStatus(filter.value))}
               className={cn(
                 "rounded-full border px-4 py-2 text-sm font-medium transition-colors",
                 status === filter.value

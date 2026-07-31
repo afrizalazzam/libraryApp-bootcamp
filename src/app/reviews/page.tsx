@@ -10,7 +10,8 @@ import { Footer } from "@/components/footer";
 import { AccountTabs } from "@/components/user/account-tabs";
 import { DeleteConfirmDialog } from "@/components/admin/delete-confirm-dialog";
 import { useToast } from "@/components/ui/toast";
-import { useAppSelector } from "@/lib/redux/hooks";
+import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
+import { setReviewsSearch } from "@/lib/redux/features/uiSlice";
 import { useDeleteReviewMutation, useMyReviewsQuery } from "@/lib/api/reviews";
 import { cn } from "@/lib/utils";
 
@@ -30,11 +31,12 @@ function formatDate(iso: string) {
 
 export default function ReviewsPage() {
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const { showToast } = useToast();
   const { user, isHydrated } = useAppSelector((state) => state.auth);
+  const { search } = useAppSelector((state) => state.ui.reviews);
   const deleteReviewMutation = useDeleteReviewMutation();
 
-  const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [reviewToDelete, setReviewToDelete] = useState<number | null>(null);
 
@@ -81,7 +83,7 @@ export default function ReviewsPage() {
             type="search"
             placeholder="Search Reviews"
             value={search}
-            onChange={(event) => setSearch(event.target.value)}
+            onChange={(event) => dispatch(setReviewsSearch(event.target.value))}
             className="h-11 rounded-full pl-11 text-base"
           />
         </div>
