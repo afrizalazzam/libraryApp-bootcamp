@@ -72,10 +72,6 @@ export function TopNav() {
             aria-label="Cart"
           >
             <Image src="/icons/cart.png" alt="" width={64} height={64} className="size-6" />
-            {/* placeholder count until cart is implemented */}
-            <span className="absolute top-0 right-0 flex size-4 items-center justify-center rounded-full bg-destructive text-[10px] font-semibold text-white">
-              1
-            </span>
           </button>
 
           <div className="hidden items-center gap-3 sm:flex">
