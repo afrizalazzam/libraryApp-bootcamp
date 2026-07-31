@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { SlidersHorizontal, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -19,17 +20,23 @@ import { cn } from "@/lib/utils";
 const RATINGS = [5, 4, 3, 2, 1];
 
 export default function BookListPage() {
+  return (
+    <Suspense fallback={null}>
+      <BookListContent />
+    </Suspense>
+  );
+}
+
+function BookListContent() {
   const { user, isHydrated } = useAppSelector((state) => state.auth);
-  const [categoryId, setCategoryId] = useState<number | null>(null);
+  const searchParams = useSearchParams();
+  const categoryIdParam = searchParams.get("categoryId");
+  const q = searchParams.get("q") ?? undefined;
+  const [categoryId, setCategoryId] = useState<number | null>(
+    categoryIdParam ? Number(categoryIdParam) : null
+  );
   const [minRating, setMinRating] = useState<number | null>(null);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-
-  useEffect(() => {
-    const param = new URLSearchParams(window.location.search).get("categoryId");
-    setCategoryId(param ? Number(param) : null);
-    // Only sync from the URL once, on mount — user-driven filter
-    // clicks shouldn't be overridden by a stale searchParams value.
-  }, []);
 
   const { data: categoriesData } = useCategoriesQuery();
   const categories = categoriesData?.categories ?? [];
@@ -38,6 +45,7 @@ export default function BookListPage() {
     useBooksQuery({
       categoryId: categoryId ?? undefined,
       minRating: minRating ?? undefined,
+      q,
     });
 
   const books = data?.pages.flatMap((page) => page.books) ?? [];
@@ -49,7 +57,9 @@ export default function BookListPage() {
       {user ? <UserTopNav /> : <PublicTopNav />}
 
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-8">
-        <h1 className="text-display-xs font-bold text-foreground">Book List</h1>
+        <h1 className="text-display-xs font-bold text-foreground">
+          {q ? `Search results for "${q}"` : "Book List"}
+        </h1>
 
         <div className="mt-6 flex flex-col gap-8 md:flex-row">
           <aside className="w-full shrink-0 md:w-56">

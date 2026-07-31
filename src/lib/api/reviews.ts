@@ -93,6 +93,35 @@ export function useCreateReviewMutation() {
   });
 }
 
+async function deleteReview(token: string, id: number): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/api/reviews/${id}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  const body: ApiEnvelope<unknown> = await response.json();
+
+  if (!response.ok || !body.success) {
+    throw new Error(body.message || "Failed to delete review.");
+  }
+}
+
+export function useDeleteReviewMutation() {
+  const token = useAppSelector((state) => state.auth.token);
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => deleteReview(token as string, id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["reviews"] });
+      queryClient.invalidateQueries({ queryKey: ["book"] });
+      queryClient.invalidateQueries({ queryKey: ["my-reviews"] });
+      queryClient.invalidateQueries({ queryKey: ["my-reviews-all"] });
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+    },
+  });
+}
+
 export type MyReview = {
   id: number;
   star: number;

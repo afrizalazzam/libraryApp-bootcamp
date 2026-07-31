@@ -90,6 +90,7 @@ export function useBookQuery(id: number) {
 export type BookListFilters = {
   categoryId?: number;
   minRating?: number;
+  q?: string;
 };
 
 async function fetchBooks(
@@ -98,6 +99,7 @@ async function fetchBooks(
 ): Promise<RecommendResult> {
   const url = new URL(`${API_BASE_URL}/api/books`);
   url.searchParams.set("page", String(page));
+  if (filters.q) url.searchParams.set("q", filters.q);
   if (filters.categoryId) url.searchParams.set("categoryId", String(filters.categoryId));
   if (filters.minRating) {
     url.searchParams.set("minRating", String(filters.minRating));

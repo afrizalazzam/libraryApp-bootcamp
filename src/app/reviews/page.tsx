@@ -2,14 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Star } from "lucide-react";
+import { Search, Star, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { TopNav } from "@/components/user/top-nav";
 import { Footer } from "@/components/footer";
 import { AccountTabs } from "@/components/user/account-tabs";
+import { DeleteConfirmDialog } from "@/components/admin/delete-confirm-dialog";
+import { useToast } from "@/components/ui/toast";
 import { useAppSelector } from "@/lib/redux/hooks";
-import { useMyReviewsQuery } from "@/lib/api/reviews";
+import { useDeleteReviewMutation, useMyReviewsQuery } from "@/lib/api/reviews";
 import { cn } from "@/lib/utils";
 
 function formatDate(iso: string) {
@@ -28,10 +30,13 @@ function formatDate(iso: string) {
 
 export default function ReviewsPage() {
   const router = useRouter();
+  const { showToast } = useToast();
   const { user, isHydrated } = useAppSelector((state) => state.auth);
+  const deleteReviewMutation = useDeleteReviewMutation();
 
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [reviewToDelete, setReviewToDelete] = useState<number | null>(null);
 
   useEffect(() => {
     if (!isHydrated) return;
@@ -49,6 +54,17 @@ export default function ReviewsPage() {
   if (!isHydrated || !user) return null;
 
   const reviews = data?.pages.flatMap((page) => page.reviews) ?? [];
+
+  function handleConfirmDelete() {
+    if (reviewToDelete == null) return;
+    deleteReviewMutation.mutate(reviewToDelete, {
+      onSuccess: () => {
+        showToast("Review deleted.");
+        setReviewToDelete(null);
+      },
+      onError: (err) => showToast(err.message, "error"),
+    });
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -92,7 +108,19 @@ export default function ReviewsPage() {
               ))
             : reviews.map((review) => (
                 <div key={review.id} className="rounded-2xl border border-border p-4">
-                  <p className="text-sm text-muted-foreground">{formatDate(review.createdAt)}</p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-muted-foreground">
+                      {formatDate(review.createdAt)}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setReviewToDelete(review.id)}
+                      className="flex size-8 items-center justify-center rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                      aria-label="Delete review"
+                    >
+                      <Trash2 className="size-4" />
+                    </button>
+                  </div>
 
                   <div className="mt-4 border-t border-border" />
 
@@ -158,6 +186,15 @@ export default function ReviewsPage() {
       </div>
 
       <Footer />
+
+      <DeleteConfirmDialog
+        open={reviewToDelete != null}
+        onOpenChange={(open) => !open && setReviewToDelete(null)}
+        onConfirm={handleConfirmDelete}
+        isPending={deleteReviewMutation.isPending}
+        title="Delete Review"
+        description="Once deleted, you won't be able to recover this review."
+      />
     </div>
   );
 }

@@ -97,7 +97,25 @@ export default function ProfilePage() {
         ) : isLoading || !profile ? (
           <p className="mt-6 text-sm text-muted-foreground">Loading profile...</p>
         ) : (
-          <div className="mt-6 max-w-xl rounded-2xl bg-card p-5 shadow-md">
+          <>
+            <div className="mt-6 grid max-w-xl grid-cols-2 gap-3 sm:grid-cols-4">
+              {[
+                { label: "Borrowed", value: data.loanStats.borrowed },
+                { label: "Late", value: data.loanStats.late },
+                { label: "Returned", value: data.loanStats.returned },
+                { label: "Total Loans", value: data.loanStats.total },
+              ].map((stat) => (
+                <div
+                  key={stat.label}
+                  className="rounded-2xl bg-card p-4 text-center shadow-md"
+                >
+                  <p className="text-display-xs font-bold text-foreground">{stat.value}</p>
+                  <p className="text-sm text-muted-foreground">{stat.label}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-6 max-w-xl rounded-2xl bg-card p-5 shadow-md">
             <div className="relative size-16 shrink-0 overflow-hidden rounded-full bg-muted">
               <Image
                 src={photoPreview ?? profile.profilePhoto ?? "/foto-profil.png"}
@@ -192,7 +210,8 @@ export default function ProfilePage() {
                 </Button>
               </>
             )}
-          </div>
+            </div>
+          </>
         )}
       </div>
 

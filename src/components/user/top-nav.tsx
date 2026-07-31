@@ -34,7 +34,15 @@ export function TopNav() {
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth.user);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const { data: cart } = useCartQuery();
+
+  function handleSearchSubmit(event: React.FormEvent) {
+    event.preventDefault();
+    const trimmed = searchTerm.trim();
+    router.push(trimmed ? `/books?q=${encodeURIComponent(trimmed)}` : "/books");
+    setIsMobileSearchOpen(false);
+  }
 
   function handleLogout() {
     clearSession();
@@ -49,23 +57,30 @@ export function TopNav() {
       <BookyLogo hideLabelOnMobile />
 
       <div className="flex items-center">
-        <div className="relative mx-auto hidden w-full max-w-md sm:block">
+        <form
+          onSubmit={handleSearchSubmit}
+          className="relative mx-auto hidden w-full max-w-md sm:block"
+        >
           <Search className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             type="search"
             placeholder="Search book"
+            value={searchTerm}
+            onChange={(event) => setSearchTerm(event.target.value)}
             className="h-11 rounded-full pl-11 text-base"
           />
-        </div>
+        </form>
 
         {isMobileSearchOpen && (
-          <div className="flex flex-1 items-center gap-2 sm:hidden">
+          <form onSubmit={handleSearchSubmit} className="flex flex-1 items-center gap-2 sm:hidden">
             <div className="relative flex-1">
               <Search className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 type="search"
                 placeholder="Search book"
                 autoFocus
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
                 className="h-11 rounded-full pl-11 text-base"
               />
             </div>
@@ -77,7 +92,7 @@ export function TopNav() {
             >
               <X className="size-5" />
             </button>
-          </div>
+          </form>
         )}
       </div>
 

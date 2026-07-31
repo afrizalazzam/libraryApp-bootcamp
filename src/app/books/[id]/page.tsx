@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
+import { AnimatePresence, motion } from "framer-motion";
 import { ChevronRight, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TopNav } from "@/components/user/top-nav";
@@ -102,10 +103,19 @@ export default function BookDetailPage() {
               </div>
 
               <div className="mt-5 flex items-center gap-6">
-                <div>
-                  <p className="text-lg font-bold text-foreground">
-                    {book.availableCopies}
-                  </p>
+                <div className="overflow-hidden">
+                  <AnimatePresence mode="popLayout" initial={false}>
+                    <motion.p
+                      key={book.availableCopies}
+                      initial={{ y: -12, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      exit={{ y: 12, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="text-lg font-bold text-foreground"
+                    >
+                      {book.availableCopies}
+                    </motion.p>
+                  </AnimatePresence>
                   <p className="text-sm text-muted-foreground">Stock</p>
                 </div>
                 <div className="h-10 w-px bg-border" />

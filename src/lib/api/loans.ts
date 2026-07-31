@@ -1,6 +1,7 @@
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { API_BASE_URL } from "./config";
 import { useAppSelector } from "@/lib/redux/hooks";
+import type { BookDetail } from "./books";
 
 type ApiEnvelope<T> = {
   success: boolean;
@@ -32,8 +33,27 @@ export function useBorrowBookMutation() {
   return useMutation({
     mutationFn: ({ bookId, days = 7 }: { bookId: number; days?: number }) =>
       borrowBook(token as string, bookId, days),
-    onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["book", variables.bookId] });
+    onMutate: async ({ bookId }) => {
+      await queryClient.cancelQueries({ queryKey: ["book", bookId] });
+
+      const previousBook = queryClient.getQueryData<BookDetail>(["book", bookId]);
+      if (previousBook) {
+        queryClient.setQueryData<BookDetail>(["book", bookId], {
+          ...previousBook,
+          availableCopies: Math.max(0, previousBook.availableCopies - 1),
+          borrowCount: previousBook.borrowCount + 1,
+        });
+      }
+
+      return { previousBook };
+    },
+    onError: (_err, { bookId }, context) => {
+      if (context?.previousBook) {
+        queryClient.setQueryData(["book", bookId], context.previousBook);
+      }
+    },
+    onSettled: (_data, _err, { bookId }) => {
+      queryClient.invalidateQueries({ queryKey: ["book", bookId] });
     },
   });
 }
